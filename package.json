@@ -1,0 +1,26 @@
+{
+  "name": "yedas-todo-app",
+  "version": "1.0.0",
+  "description": "yedas todo app",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "local-dev-win": "set MY_ENV=dev&& node index.js",
+    "local-prod-win": "set MY_ENV=prod&& node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/osekman/yedas-todo-app.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/osekman/yedas-todo-app/issues"
+  },
+  "homepage": "https://github.com/osekman/yedas-todo-app#readme",
+  "dependencies": {
+    "express": "^4.21.2",
+    "mongodb": "^6.13.0"
+  }
+}
