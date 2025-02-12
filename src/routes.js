@@ -18,8 +18,12 @@ router.post(`/api/user`, userController.login);
 router.put(`/api/user`, userController.login);
 router.delete(`/api/user`, userController.login);
 
+router.get(`/api/user/account`, userController.account);
+
 //auth login
+router.get(`/api/auth/test`, authController.test);
 router.get(`/api/auth/login`, authController.login);
+
 router.post(`/api/auth/login`, authController.login);
 
 

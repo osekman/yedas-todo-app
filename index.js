@@ -6,11 +6,9 @@ const bodyParser = require("body-parser");
 const path = require("path");
 const fs = require("fs");
 const cors = require("cors");
-const env = require("dotenv").config({path:path.join(__dirname)+"/.env"});
-const jwt = require("jsonwebtoken");
-//////////// SERVERLAR //////////////////
 
-const PORT     = process.env.PORT ;
+const PORT     = process.env.PORT || 3000;
+const mw = require('./src/middlewares');
 
 //-------- HTTP -----
 var app = express();
@@ -33,11 +31,14 @@ app.use((req, res, next) => {
 
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.use(mw.tokenValidation); // giriş kontrol..
+
 
 http.createServer(app).listen(PORT, function () {
     console.log(">>>> Port dinleniyor ::"+PORT);
-    
 });
 
 const routes = require('./src/routes')
-app.use("/", routes)
+app.use("/", routes);
+
+
