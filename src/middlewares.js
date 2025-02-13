@@ -3,8 +3,7 @@ const { v4: uuidv4 } = require('uuid');
 
 const excToken = [
    "/",
-   "/api/login",
-   "/api/auth",
+   "/api/auth/login",
    "/api/auth/test",
 ];
 
