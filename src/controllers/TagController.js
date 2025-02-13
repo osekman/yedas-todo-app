@@ -5,11 +5,11 @@ module.exports = {
     
     create: async function (request, response) {
 
-        let { name, priority, tags } = request.body;
+        let { name, tag_desc } = request.body;
 
         try {
             let conn = await mongo();
-            let r = await conn.collection("tasks").insertOne({ name, priority, tags, create_date: new Date() , status:0 });
+            let r = await conn.collection("tags").insertOne({ name, create_date: new Date() , tag_desc });
             if(r.insertedId == null) 
                 response.send({ status: 500, message: "Kayıt eklenemedi", r});
             else
@@ -28,7 +28,7 @@ module.exports = {
         try {
              let conn = await mongo();
 
-            let data = await conn.collection("tasks").find({}).toArray();
+            let data = await conn.collection("tags").find({}).toArray();
             if(data == null) response.send({ status: 500, message: "Kayıt bulunamadı" });
             else response.send({ status: 200, data  });
 
@@ -41,7 +41,9 @@ module.exports = {
 
     update: async function (request, response) {
 
-        let { id, name, priority, tags } = request.body;
+        let { id, name, tag_desc } = request.body;
+
+        console.log("id", id);
 
         try {
 
@@ -52,8 +54,7 @@ module.exports = {
             let updateObj = {};
 
             if(name) updateObj.name = name;
-            if(priority) updateObj.priority = priority;
-            // if(tags) updateObj.tags = tags;
+            if(tag_desc) updateObj.tag_desc = tag_desc;
 
 
             let conn = await mongo();
@@ -62,7 +63,7 @@ module.exports = {
 
             if(updateObj != {}){
 
-                let r = await conn.collection("tasks").updateOne(filter, { $set: {...updateObj } });
+                let r = await conn.collection("tags").updateOne(filter, { $set: { ...updateObj } });
 
                 response.send({ status: 200, message: "OK. Güncellendi", r});
             }else{
@@ -90,7 +91,7 @@ module.exports = {
             if(!id) response.send({ status: 500, message: "id is required" });
             else {
     
-                let r = await conn.collection("tasks").deleteOne({_id: oid });
+                let r = await conn.collection("tags").deleteOne({_id: oid });
 
                 response.send({ status: 200, message: "OK. Silindi" });
             } 
