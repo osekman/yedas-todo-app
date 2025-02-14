@@ -42,6 +42,14 @@ module.exports = {
       }
    },
 
+   adminMiddleware : (req, res, next) => {
+      if (req.body.decode.user_data.isAdmin) {
+          next(); // Kullanıcı admin ise devam et
+      } else {
+          res.status(403).json({ message: "Erişim reddedildi. Admin yetkiniz yok." });
+      }
+   },
+
    requestId: function (req, res, next) {
       
       // Request ID oluştur

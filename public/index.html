@@ -113,6 +113,7 @@
               inputType: "password"
           }],
           completeText: "Giriş Yap",
+          "showQuestionNumbers": "off",
       };
 
       let surveyLoginModel;
@@ -130,16 +131,99 @@
                 }
             };
 
-            let re = await fetch(api_url + "/user/account", options).then((r) => r.text());
-            $("#loadPage").html(re);
+            let re = await fetch(api_url + "/user/account", options).then((r) => r.json());
+            
+            if(re.status == 200){
 
+              $("#loadPage").empty().html('<div id="surveyElement"></div>');
+
+              let item = re.data;
+
+              let marr = [];
+              for (let i in item) {
+                  const element = item[i];
+
+                    let obj = {
+                          "type": "text",
+                          "name": i,
+                          "title": i,
+                          "defaultValue":element,
+                    };
+                 
+                    if(!(i == "username" || i == "password" )){
+                      obj.readOnly = true
+                    }
+                      
+                    marr.push(obj);
+                  
+              }
+
+              let obj1 = {
+                          "type": "text",
+                          "name":  "password1",
+                          "title": "Yeni Şifre",
+                          "defaultValue":"",
+                    };
+              let obj2 = {
+                          "type": "text",
+                          "name":  "password2",
+                          "title":"Yeni Şifre Tekrar",
+                          "defaultValue":"",
+                    };
+              marr.push(obj1);
+              marr.push(obj2);
+
+              let surveyJson = {
+                  showCompletedPage:false,
+                  "showQuestionNumbers": "off",
+                  elements: marr,
+                  completeText: "Güncelle",
+              };
+
+              let myacc = new Survey.Model(surveyJson);
+              myacc.onComplete.add(async (res)=>{
+                let mbody = res.data;
+                if(mbody.password1 != mbody.password2){
+                  alert("Şifreler uyuşmuyor");
+                  return;
+                }
+                delete mbody.password1;
+                delete mbody.password2;
+                let token = localStorage.getItem("token");
+
+                let options = {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json;charset=UTF-8',
+                        "Token": token
+                    },
+                    body: JSON.stringify(mbody)
+                };
+
+                let re = await fetch(api_url + "/user", options).then((r) => r.json());
+
+                if(re.status == 200){
+                    alert("Güncelleme Başarılı "+JSON.stringify(re));
+                }else{
+                  alert("Güncelleme başarısız "+JSON.stringify(re));
+                }
+
+              });
+
+              myacc.render(document.getElementById("surveyElement"));
+
+            }else{
+              alert("Hesap bilgileri getirilemedi");
+            }
           }else{
             alert("Giriş yapınız");
             return;
           }
           
       }
-     
+
+
+
       $.loginModel = function() {
 
         $("#loadPage").empty().html('<div id="surveyElement"></div>');
@@ -190,7 +274,6 @@
         surveyLoginModel.render(document.getElementById("surveyElement"));
 
       };
-
       $.logout = function() {
         localStorage.removeItem("token");
         localStorage.removeItem("isAdmin");
@@ -208,6 +291,12 @@
       //------------------- TASK -----------------
       $.getTask = async function() {
 
+        let taskStates = [
+          {id:0, name:"Beklemede"},
+          {id:1, name:"Devam Ediyor"},
+          {id:2, name:"Tamamlandı"}
+        ];
+
         let token = localStorage.getItem("token");
 
         let options = {
@@ -220,19 +309,27 @@
 
         let re = await fetch(api_url + "/task", options).then((r) => r.json());
 
-        let tasks = re.data;
+        if (re.status != 200) {
+            alert("Görevler getirilemedi "+ JSON.stringify(re) );
+            return;
+        }
 
-        let strCols = tasks.reduce((acc, curr) => {
+        mdata = re.data;
+
+        let strCols = mdata.reduce((acc, curr) => {
+
+          let state_desc = taskStates.find(x => x.id == curr.status).name;
 
             return acc + `
                 <tr>
                     <td>${curr.name}</td>
-                    <td>${curr.status_desc}</td>
+                    <td>${state_desc}</td>
                     <td>${curr.priority}</td>
                     <td>${JSON.stringify(curr.tags)}</td>
                     <td>${new Date(curr.create_date).toLocaleString("tr-TR")}</td>
                     <td> 
-                        <button class="btn btn-primary" onclick="editTask(${curr._id})"> <i class="fa fa-pen"></i>  </button> 
+                        <button class="btn btn-primary" onclick="$.updateTask('${curr._id}')"> <i class="fa fa-pen"></i>  </button> 
+                        <button class="btn btn-danger" onclick="$.deleteTask('${curr._id}')"> <i class="fa fa-trash"></i>  </button> 
                     </td>
                 </tr>
             
@@ -241,6 +338,9 @@
 
         let strTable = `
               <h3 class="table_type">Görevler</h3>
+              <br>
+              <button class="btn btn-success" onclick="$.createTask()">Görev Oluştur</button>
+              <br>
               <table class="table">
                   <thead class="thead">
                       <tr>
@@ -264,7 +364,201 @@
 
        
       };
+      $.updateTask = async function(id) {
+          $("#popupPage").empty().html('<div id="surveyElement"></div>');
+          let item = mdata.find(x => x._id == id);
 
+          let marr = [];
+          for (let i in item) {
+              const element = item[i];
+
+              let obj = {
+                    "type": "text",
+                    "name": i,
+                    "title": i,
+                    "defaultValue":element,
+              };
+              if(!(i == "name" || i == "status" || i == "priority" )){
+                obj.readOnly = true
+              }
+                
+              marr.push(obj);
+              
+          }
+
+          let sjson = {
+              "title": "Kategori Güncelleme",
+              "description": "",
+              "completedHtml": "",
+              "pages": [
+                {
+                  "name": "page1",
+                  "elements": marr
+                }
+              ],
+              "showQuestionNumbers": "off",
+              "completeText": "Güncelle",
+              "widthMode": "responsive",
+            };
+
+          const survey = new Survey.Model(sjson);
+          survey.showCompletedPage = false; // Ek sayfa çıkmasını engelle
+
+          // You can delete the line below if you do not use a customized theme
+          const handlePopupClose = () => {
+              // ...
+              // Perform actions when users close the popup
+              // ...
+
+              console.log("Pop-up kapatıldı.");
+          }
+          SurveyUI.renderPopupSurvey(
+              survey,
+              document.getElementById("surveyElement"),
+              {
+                  isExpanded: true,
+                  allowClose: true,
+                  closeOnCompleteTimeout: 0,
+                  onClose: handlePopupClose
+              }
+          );
+
+
+          survey.onComplete.add( async function(sender, opt) {
+            
+
+            let mbody= {id:sender.data._id, name:sender.data.name, status:sender.data.status, priority:sender.data.priority };
+
+            let token = localStorage.getItem("token");
+
+            let options = {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json;charset=UTF-8',
+                    "Token": token
+                },
+              body: JSON.stringify(mbody)
+            };
+
+            let re = await fetch(api_url + "/task", options).then((r) => r.json());
+
+            if(re.status == 200){
+                alert("Güncelleme Başarılı", JSON.stringify(re));
+            }else{
+              alert("Güncelleme başarısız", JSON.stringify(re));
+            }
+          
+          });
+
+};
+      $.deleteTask = async function(id) {
+
+        let token = localStorage.getItem("token");
+
+        let options = {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json;charset=UTF-8',
+                "Token": token
+            },
+            body: JSON.stringify({id:id})
+        };
+
+        let re = await fetch(api_url + "/task", options).then((r) => r.json());
+
+        if(re.status == 200){
+            alert("Silme Başarılı", JSON.stringify(re));
+        }else{
+          alert("Silme başarısız", JSON.stringify(re));
+        }
+
+      };
+      $.createTask = async () => {
+        $("#popupPage").empty().html('<div id="surveyElement"></div>');
+
+        let marr = [
+          {
+            "type": "text",
+            "name": "name",
+            "title": "name",
+          },
+          {
+            "type": "text",
+            "name": "status",
+            "title": "status",
+            "description": "0: Beklemede, 1: Devam Ediyor, 2: Tamamlandı"
+          },
+          {
+            "type": "text",
+            "name": "priority",
+            "title": "priority",
+            "description": "1-10 arası bir değer giriniz"
+          },
+          {
+            "type": "text",
+            "name": "tags",
+            "title": "tags",
+            "description": "Kategorileri virgülle ayırarak giriniz"
+          }
+        ];
+
+        let sjson = {
+            "title": "Görev Oluşturma",
+            "description": "",
+            "completedHtml": "",
+            "showCompletedPage": false,
+            "pages": [
+              {
+                "name": "page1",
+                "elements": marr
+              }
+            ],
+            "showQuestionNumbers": "off",
+            "completeText": "Oluştur",
+            "widthMode": "responsive",
+          };
+
+        const survey = new Survey.Model(sjson);
+
+        SurveyUI.renderPopupSurvey(
+            survey,
+            document.getElementById("surveyElement"),
+            {
+                isExpanded: true,
+                allowClose: true,
+                closeOnCompleteTimeout: 0,
+                onClose: () => console.log("Pop-up kapatıldı.")
+            }
+        );
+
+
+        survey.onComplete.add( async function(sender, opt) {
+          
+
+          let newtags = sender.data.tags.split(",").map(x => x.trim());
+          let mbody= {name:sender.data.name, status:sender.data.status, priority:sender.data.priority, tags:newtags };
+
+          let token = localStorage.getItem("token");
+
+          let options = {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json;charset=UTF-8',
+                  "Token": token
+              },
+            body: JSON.stringify(mbody)
+          };
+
+          let re = await fetch(api_url + "/task", options).then((r) => r.json());
+
+          if(re.status == 200){
+              alert("Oluşturma Başarılı", JSON.stringify(re));
+          }else{
+            alert("Oluşturma başarısız", JSON.stringify(re));
+          }
+        });
+
+      };
 
       //------------------- TAG -----------------
       $.getTag = async function() {
@@ -281,6 +575,11 @@
 
         let re = await fetch(api_url + "/tag", options).then((r) => r.json());
 
+        if (re.status != 200) {
+            alert("Kategoriler getirilemedi "+JSON.stringify(re));
+            return;
+        }
+
         mdata = re.data;
 
         let strCols = mdata.reduce((acc, curr) => {
@@ -292,6 +591,7 @@
                     <td>${new Date(curr.create_date).toLocaleString("tr-TR")}</td>
                     <td> 
                         <button class="btn btn-primary" onclick="$.updateTag('${curr._id}')"> <i class="fa fa-pen"></i>  </button> 
+                        <button class="btn btn-danger" onclick="$.deleteTag('${curr._id}')"> <i class="fa fa-trash"></i>  </button> 
                     </td>
                 </tr>
             
@@ -300,6 +600,9 @@
 
         let strTable = `
               <h3 class="table_type">Kategoriler</h3>
+              <br>
+              <button class="btn btn-success" onclick="$.createTag()">Kategori Oluştur</button>
+              <br>
               <table class="table">
                   <thead class="thead">
                       <tr>
@@ -348,6 +651,7 @@
             "title": "Kategori Güncelleme",
             "description": "",
             "completedHtml": "",
+            "showCompletedPage": false,
             "pages": [
               {
                 "name": "page1",
@@ -360,16 +664,7 @@
           };
 
         const survey = new Survey.Model(sjson);
-        survey.showCompletedPage = false; // Ek sayfa çıkmasını engelle
 
-        // You can delete the line below if you do not use a customized theme
-        const handlePopupClose = () => {
-            // ...
-            // Perform actions when users close the popup
-            // ...
-
-            console.log("Pop-up kapatıldı.");
-        }
         SurveyUI.renderPopupSurvey(
             survey,
             document.getElementById("surveyElement"),
@@ -377,13 +672,13 @@
                 isExpanded: true,
                 allowClose: true,
                 closeOnCompleteTimeout: 0,
-                onClose: handlePopupClose
+                onClose: () => console.log("Pop-up kapatıldı.")
             }
         );
 
 
         survey.onComplete.add( async function(sender, opt) {
-          console.log("Anket tamamlandı! Sonuçlar:", sender.data);
+          
 
           let mbody= {id:sender.data._id, name:sender.data.name, tag_desc:sender.data.tag_desc };
 
@@ -409,7 +704,100 @@
         });
 
       };
-        
+      $.deleteTag = async function(id) {
+
+        let token = localStorage.getItem("token");
+
+        let options = {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json;charset=UTF-8',
+                "Token": token
+            },
+            body: JSON.stringify({id:id})
+        };
+
+        let re = await fetch(api_url + "/tag", options).then((r) => r.json());
+
+        if(re.status == 200){
+            alert("Silme Başarılı", JSON.stringify(re));
+        }else{
+          alert("Silme başarısız", JSON.stringify(re));
+        }
+       
+      };
+      $.createTag = async ()=>{
+        $("#popupPage").empty().html('<div id="surveyElement"></div>');
+
+        let marr = [
+          {
+            "type": "text",
+            "name": "name",
+            "title": "name",
+          },
+          {
+            "type": "text",
+            "name": "tag_desc",
+            "title": "tag_desc",
+          }
+        ];
+
+        let sjson = {
+            "title": "Kategori Oluşturma",
+            "description": "",
+            "completedHtml": "",
+            "showCompletedPage": false,
+            "pages": [
+              {
+                "name": "page1",
+                "elements": marr
+              }
+            ],
+            "showQuestionNumbers": "off",
+            "completeText": "Oluştur",
+            "widthMode": "responsive",
+          };
+
+        const survey = new Survey.Model(sjson);
+
+        SurveyUI.renderPopupSurvey(
+            survey,
+            document.getElementById("surveyElement"),
+            {
+                isExpanded: true,
+                allowClose: true,
+                closeOnCompleteTimeout: 0,
+                onClose: () => console.log("Pop-up kapatıldı.")
+            }
+        );
+
+
+        survey.onComplete.add( async function(sender, opt) {
+          
+
+          let mbody= {name:sender.data.name, tag_desc:sender.data.tag_desc };
+
+          let token = localStorage.getItem("token");
+
+          let options = {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json;charset=UTF-8',
+                  "Token": token
+              },
+            body: JSON.stringify(mbody)
+          };
+
+          let re = await fetch(api_url + "/tag", options).then((r) => r.json());
+
+          if(re.status == 200){
+              alert("Oluşturma Başarılı", JSON.stringify(re));
+          }else{
+            alert("Oluşturma başarısız", JSON.stringify(re));
+          }
+         
+        });
+      }
     });
   </script>
 

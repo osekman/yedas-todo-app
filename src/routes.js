@@ -1,5 +1,7 @@
 const express = require('express');
 
+const mw = require('./middlewares');
+
 const router = express.Router()
 
 
@@ -15,13 +17,13 @@ router.get('/', (req, res) => {
 });
 
 //user
-router.get(`/api/user`, userController.login);
-router.post(`/api/user`, userController.login);
-router.put(`/api/user`, userController.login);
-router.delete(`/api/user`, userController.login);
+router.get(`/api/user`, mw.adminMiddleware, userController.read);
+router.post(`/api/user`, mw.adminMiddleware, userController.create);
+router.put(`/api/user`, mw.adminMiddleware, userController.update);
+router.delete(`/api/user`, mw.adminMiddleware, userController.delete);
 
 //görev işlemleri
-router.get(`/api/task`, taskController.read);
+router.get(`/api/task`, mw.adminMiddleware, taskController.read);
 router.post(`/api/task`, taskController.create);
 router.put(`/api/task`, taskController.update);
 router.delete(`/api/task`, taskController.delete);

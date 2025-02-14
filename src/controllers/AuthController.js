@@ -30,7 +30,10 @@ module.exports = {
 
         });
 
-        const payLoad = { user_data: user };
+        let user_data = { ...user }
+        delete user_data.password;
+
+        const payLoad = { user_data: user_data };
 
         const token = jwt.sign(payLoad, "my_secret_keyword_yedas", { expiresIn: 1 * 60 * 60 }); // 1 saat geçerli
 
@@ -41,12 +44,12 @@ module.exports = {
     test: async function (request, response) {
  
         const saltRounds = 10;
-        let  myPlaintextPassword =  "my_pass_hash_script";
+        let  myPlaintextPassword =  "1234";
 
         bcrypt.hash(myPlaintextPassword, saltRounds, async function(err, hash) {
             let conn = await mongo();
             // Store hash in your password DB.
-            conn.collection("users").insertOne({ username: "my_new_hashed_user", password: hash});
+            conn.collection("users").insertOne({ username: "admin", password: hash});
 
         });
 

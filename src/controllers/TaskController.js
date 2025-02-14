@@ -41,7 +41,7 @@ module.exports = {
 
     update: async function (request, response) {
 
-        let { id, name, priority, tags } = request.body;
+        let { id, name, priority, tags, status } = request.body;
 
         try {
 
@@ -53,6 +53,7 @@ module.exports = {
 
             if(name) updateObj.name = name;
             if(priority) updateObj.priority = priority;
+            if(status) updateObj.status = status;
             // if(tags) updateObj.tags = tags;
 
 
