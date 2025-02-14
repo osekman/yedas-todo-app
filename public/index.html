@@ -8,6 +8,7 @@
   <link href="https://unpkg.com/survey-core/defaultV2.min.css" type="text/css" rel="stylesheet">
   <script type="text/javascript" src="https://unpkg.com/survey-core/survey.core.min.js"></script>
   <script type="text/javascript" src="https://unpkg.com/survey-js-ui/survey-js-ui.min.js"></script>
+  
 
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
@@ -18,6 +19,9 @@
     <link href="https://cdn.datatables.net/v/bs4/jq-3.7.0/dt-2.2.2/datatables.min.css" rel="stylesheet" integrity="sha384-IqnXeN+TNgpBVx9Gwu6uAVQ9GqZaSi1pTxeUY+JMg7rbygv+twg3elwmYdrE3rYB" crossorigin="anonymous">
     <script src="https://cdn.datatables.net/v/bs4/jq-3.7.0/dt-2.2.2/datatables.min.js" integrity="sha384-hmzgKjeqmHd//EUn2zlaePZqkoNRsdjcU4YHeUtqICUupjlgxd/zqBw3CTrOPxB6" crossorigin="anonymous"></script>
 
+    <script src=" https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.7.2/js/all.min.js "></script>
+    <link href=" https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.7.2/css/fontawesome.min.css " rel="stylesheet">
+
 </head>
 <body>
 
@@ -25,6 +29,33 @@
 
     .hideThis {
       display: none;
+    }
+
+    /* Pop-up anketin genel boyutunu küçült */
+    .sv_window {
+      top: 10% !important;
+      left: 25% !important;
+      width: 50% !important; /* Genişlik */
+      height: 80% !important; /* Yükseklik */
+      max-width: 95% !important; /* Maksimum genişlik */
+      max-height: 95% !important; /* Maksimum yükseklik */
+    }
+
+    /* İçerik boyutunu küçült */
+    .sv_window .sv_body {
+        font-size: 14px !important; /* Yazı boyutu */
+        padding: 10px !important; /* İç boşluk */
+    }
+
+    /* Soru başlıklarını küçült */
+    .sv_window .sv_q_title {
+        font-size: 16px !important; /* Soru başlığı boyutu */
+    }
+
+    /* Buton boyutunu küçült */
+    .sv_window .sv_complete_btn {
+        font-size: 14px !important; /* Buton yazı boyutu */
+        padding: 5px 10px !important; /* Buton iç boşluk */
     }
 
   </style>
@@ -45,7 +76,10 @@
               <a class="nav-link hideThis" id="users" onclick="$.users()">Kullanıcılar</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" onclick="$.todos()">Görevler</a>
+              <a class="nav-link" onclick="$.getTask()">Görevler</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" onclick="$.getTag()">Kategoriler</a>
             </li>
           </ul>
           <form class="form-inline my-2 my-lg-0">
@@ -56,13 +90,15 @@
       </nav>
 
 
+  <div id="popupPage"></div>
   <div id="loadPage"></div>
-  <div id="surveyContainer"></div>
 
   <script>
     $(document).ready(function() {
       // $("#loadPage").load("login.html");
       let api_url = "http://localhost:3000/api";
+      let mtable;
+      let mdata;
 
       const surveyJson = {
           showCompletedPage:false,
@@ -84,7 +120,7 @@
       $.account = async function() {
           let token = localStorage.getItem("token");
           
-          $("#surveyContainer").empty();
+          $("#loadPage").empty();
           if(token){
             let options = {
                 method: 'GET',
@@ -106,10 +142,7 @@
      
       $.loginModel = function() {
 
-        $("#surveyContainer").empty();
-        $("#surveyContainer").empty().html('<div id="surveyElement"></div>');
-
-
+        $("#loadPage").empty().html('<div id="surveyElement"></div>');
 
         async function surveyComplete (res) {
 
@@ -172,6 +205,211 @@
         alert("Çıkış yapıldı");
       };
 
+      //------------------- TASK -----------------
+      $.getTask = async function() {
+
+        let token = localStorage.getItem("token");
+
+        let options = {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json;charset=UTF-8',
+                "Token": token
+            }
+        };
+
+        let re = await fetch(api_url + "/task", options).then((r) => r.json());
+
+        let tasks = re.data;
+
+        let strCols = tasks.reduce((acc, curr) => {
+
+            return acc + `
+                <tr>
+                    <td>${curr.name}</td>
+                    <td>${curr.status_desc}</td>
+                    <td>${curr.priority}</td>
+                    <td>${JSON.stringify(curr.tags)}</td>
+                    <td>${new Date(curr.create_date).toLocaleString("tr-TR")}</td>
+                    <td> 
+                        <button class="btn btn-primary" onclick="editTask(${curr._id})"> <i class="fa fa-pen"></i>  </button> 
+                    </td>
+                </tr>
+            
+            `;
+        }, '')
+
+        let strTable = `
+              <h3 class="table_type">Görevler</h3>
+              <table class="table">
+                  <thead class="thead">
+                      <tr>
+                          <th>Task Adı</th>
+                          <th>Durumu</th>
+                          <th>Öncelik</th>
+                          <th>Kategorileri</th>
+                          <th>Tarih</th>
+                          <th>İşlem</th>
+                      </tr>
+                  </thead>
+                  <tbody class="tbody">
+                    ${strCols}
+                  </tbody>
+              </table>
+          `;
+
+
+          $("#loadPage").empty();
+          $("#loadPage").append(strTable);
+
+       
+      };
+
+
+      //------------------- TAG -----------------
+      $.getTag = async function() {
+
+        let token = localStorage.getItem("token");
+
+        let options = {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json;charset=UTF-8',
+                "Token": token
+            }
+        };
+
+        let re = await fetch(api_url + "/tag", options).then((r) => r.json());
+
+        mdata = re.data;
+
+        let strCols = mdata.reduce((acc, curr) => {
+
+            return acc + `
+                <tr>
+                    <td>${curr.name}</td>
+                    <td>${curr.tag_desc}</td>
+                    <td>${new Date(curr.create_date).toLocaleString("tr-TR")}</td>
+                    <td> 
+                        <button class="btn btn-primary" onclick="$.updateTag('${curr._id}')"> <i class="fa fa-pen"></i>  </button> 
+                    </td>
+                </tr>
+            
+            `;
+        }, '')
+
+        let strTable = `
+              <h3 class="table_type">Kategoriler</h3>
+              <table class="table">
+                  <thead class="thead">
+                      <tr>
+                          <th>GörevAdı</th>
+                          <th>Açıklama</th>
+                          <th>Tarih</th>
+                          <th>İşlem</th>
+                      </tr>
+                  </thead>
+                  <tbody class="tbody">
+                    ${strCols}
+                  </tbody>
+              </table>
+          `;
+
+
+          $("#loadPage").empty();
+          $("#loadPage").append(strTable);
+
+       
+      };
+      $.updateTag = async function(id) {
+
+        $("#popupPage").empty().html('<div id="surveyElement"></div>');
+        let item = mdata.find(x => x._id == id);
+
+        let marr = [];
+        for (let i in item) {
+            const element = item[i];
+
+            let obj = {
+                  "type": "text",
+                  "name": i,
+                  "title": i,
+                  "defaultValue":element,
+            };
+            if(!(i == "name" || i == "tag_desc")){
+              obj.readOnly = true
+            }
+              
+            marr.push(obj);
+            
+        }
+       
+        let sjson = {
+            "title": "Kategori Güncelleme",
+            "description": "",
+            "completedHtml": "",
+            "pages": [
+              {
+                "name": "page1",
+                "elements": marr
+              }
+            ],
+            "showQuestionNumbers": "off",
+            "completeText": "Güncelle",
+            "widthMode": "responsive",
+          };
+
+        const survey = new Survey.Model(sjson);
+        survey.showCompletedPage = false; // Ek sayfa çıkmasını engelle
+
+        // You can delete the line below if you do not use a customized theme
+        const handlePopupClose = () => {
+            // ...
+            // Perform actions when users close the popup
+            // ...
+
+            console.log("Pop-up kapatıldı.");
+        }
+        SurveyUI.renderPopupSurvey(
+            survey,
+            document.getElementById("surveyElement"),
+            {
+                isExpanded: true,
+                allowClose: true,
+                closeOnCompleteTimeout: 0,
+                onClose: handlePopupClose
+            }
+        );
+
+
+        survey.onComplete.add( async function(sender, opt) {
+          console.log("Anket tamamlandı! Sonuçlar:", sender.data);
+
+          let mbody= {id:sender.data._id, name:sender.data.name, tag_desc:sender.data.tag_desc };
+
+          let token = localStorage.getItem("token");
+
+          let options = {
+              method: 'PUT',
+              headers: {
+                  'Content-Type': 'application/json;charset=UTF-8',
+                  "Token": token
+              },
+            body: JSON.stringify(mbody)
+          };
+
+          let re = await fetch(api_url + "/tag", options).then((r) => r.json());
+
+          if(re.status == 200){
+              alert("Güncelleme Başarılı", JSON.stringify(re));
+          }else{
+            alert("Güncelleme başarısız", JSON.stringify(re));
+          }
+         
+        });
+
+      };
+        
     });
   </script>
 
