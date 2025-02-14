@@ -58,9 +58,16 @@ module.exports = {
 
     update: async function (request, response) {
 
-        let { id, name, priority, tags, status } = request.body;
+        let { id, username, password1, password2, isAdmin} = request.body;
 
         try {
+
+            if(password1 && password1 !== password2){
+
+                response.send({ status: 400, message: "Şifreler aynı olmalı!" });
+
+                return;
+            }
 
             let oid = ObjectId.createFromHexString(id);
 
@@ -68,11 +75,8 @@ module.exports = {
 
             let updateObj = {};
 
-            if(name) updateObj.name = name;
-            if(priority) updateObj.priority = priority;
-            if(status) updateObj.status = status;
-            // if(tags) updateObj.tags = tags;
-
+            if(username) updateObj.username = username;
+            if(isAdmin !== undefined || isAdmin !== null ) updateObj.isAdmin = isAdmin;
 
             let conn = await mongo();
 
@@ -80,9 +84,26 @@ module.exports = {
 
             if(updateObj != {}){
 
-                let r = await conn.collection("tasks").updateOne(filter, { $set: {...updateObj } });
+                const saltRounds = 10;
 
-                response.send({ status: 200, message: "OK. Güncellendi", r});
+                if(password1){
+                    bcrypt.hash(password1, saltRounds, async function(err, hash) {
+                        let conn = await mongo();
+                        
+                        updateObj.password = hash;
+
+                        let r = await conn.collection("users").updateOne(filter, { $set: {...updateObj } });
+
+                        response.send({ status: 200, message: "OK. Güncellendi", r });
+            
+                    });
+                }else{
+                    let r = await conn.collection("users").updateOne(filter, { $set: {...updateObj } });
+
+                    response.send({ status: 200, message: "OK. Güncellendi", r });
+
+                }
+               
             }else{
                 response.send({ status: 300, message: "Güncellenecek alan belirtmediniz" });
             }
@@ -108,7 +129,7 @@ module.exports = {
             if(!id) response.send({ status: 500, message: "id is required" });
             else {
     
-                let r = await conn.collection("tasks").deleteOne({_id: oid });
+                let r = await conn.collection("users").deleteOne({_id: oid });
 
                 response.send({ status: 200, message: "OK. Silindi" });
             } 

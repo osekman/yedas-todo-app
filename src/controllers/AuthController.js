@@ -28,17 +28,26 @@ module.exports = {
             if(err) console.log("eşleşmedi..",err);
             else console.log("eşleşti..", result);
 
+            if(result) {
+                console.log("Giriş başarılı");
+
+                let user_data = { ...user }
+                delete user_data.password;
+        
+                const payLoad = { user_data: user_data };
+        
+                const token = jwt.sign(payLoad, "my_secret_keyword_yedas", { expiresIn: 1 * 60 * 60 }); // 1 saat geçerli
+        
+                response.send({ status: 200, message: "login V1.0", payLoad, token });
+
+            } else {
+                response.send({ status: 500, message: "Giriş başarısız!" });
+                console.log("Giriş başarısız");
+            }
+
         });
 
-        let user_data = { ...user }
-        delete user_data.password;
-
-        const payLoad = { user_data: user_data };
-
-        const token = jwt.sign(payLoad, "my_secret_keyword_yedas", { expiresIn: 1 * 60 * 60 }); // 1 saat geçerli
-
-
-        response.send({ status: 200, message: "login V1.0", payLoad, token });
+       
 
     },
     test: async function (request, response) {

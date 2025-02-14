@@ -73,7 +73,7 @@
               <a class="nav-link" onclick="$.account()">Hesabım<span class="sr-only">(current)</span></a>
             </li>
             <li class="nav-item">
-              <a class="nav-link hideThis" id="users" onclick="$.users()">Kullanıcılar</a>
+              <a class="nav-link hideThis" id="users" onclick="$.getUser()">Kullanıcılar</a>
             </li>
             <li class="nav-item">
               <a class="nav-link" onclick="$.getTask()">Görevler</a>
@@ -99,24 +99,6 @@
       let api_url = "http://localhost:3000/api";
       let mtable;
       let mdata;
-
-      const surveyJson = {
-          showCompletedPage:false,
-          elements: [{
-              name: "username",
-              title: "username",
-              type: "text"
-          }, {
-              name: "password",
-              title: "password",
-              type: "text",
-              inputType: "password"
-          }],
-          completeText: "Giriş Yap",
-          "showQuestionNumbers": "off",
-      };
-
-      let surveyLoginModel;
         
       $.account = async function() {
           let token = localStorage.getItem("token");
@@ -182,13 +164,17 @@
 
               let myacc = new Survey.Model(surveyJson);
               myacc.onComplete.add(async (res)=>{
+                console.log(res.data)
+
                 let mbody = res.data;
                 if(mbody.password1 != mbody.password2){
                   alert("Şifreler uyuşmuyor");
                   return;
                 }
-                delete mbody.password1;
-                delete mbody.password2;
+
+                mbody.id = mbody._id;
+                delete mbody._id;
+
                 let token = localStorage.getItem("token");
 
                 let options = {
@@ -222,11 +208,26 @@
           
       }
 
-
-
       $.loginModel = function() {
 
-        $("#loadPage").empty().html('<div id="surveyElement"></div>');
+          $("#loadPage").empty().html('<div id="surveyElement"></div>');
+          const surveyJson = {
+            showCompletedPage:false,
+            elements: [{
+                name: "username",
+                title: "username",
+                type: "text"
+            }, {
+                name: "password",
+                title: "password",
+                type: "text",
+                inputType: "password"
+            }],
+            completeText: "Giriş Yap",
+            "showQuestionNumbers": "off",
+        };
+
+        let surveyLoginModel;
 
         async function surveyComplete (res) {
 
@@ -284,6 +285,9 @@
         if(!$("#users").hasClass("hideThis")){
           $("#users").addClass("hideThis");
         }
+
+        $("#loadPage").empty();
+        $("#popupPage").empty();
 
         alert("Çıkış yapıldı");
       };
@@ -798,7 +802,260 @@
          
         });
       }
-    });
+    
+    
+      //------------------- USER -----------------
+      $.getUser = async function() {
+
+        let token = localStorage.getItem("token");
+
+        let options = {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json;charset=UTF-8',
+                "Token": token
+            }
+        };
+
+        let re = await fetch(api_url + "/user", options).then((r) => r.json());
+
+        if (re.status != 200) {
+            alert("Kullanıcılar getirilemedi "+ JSON.stringify(re) );
+            return;
+        }
+
+        mdata = re.data;
+        mdata.map(x=> delete x.password);
+
+        let strCols = mdata.reduce((acc, curr) => {
+
+            return acc + `
+                <tr>
+                    <td>${curr.username}</td>
+                    <td>${curr.isAdmin}</td>
+                    <td>${new Date(curr.create_date).toLocaleString("tr-TR")}</td>
+                    <td> 
+                        <button class="btn btn-primary" onclick="$.updateUser('${curr._id}')"> <i class="fa fa-pen"></i>  </button> 
+                        <button class="btn btn-danger" onclick="$.deleteUser('${curr._id}')"> <i class="fa fa-trash"></i>  </button> 
+                    </td>
+                </tr>
+            
+            `;
+        }, '')
+
+        let strTable = `
+              <h3 class="table_type">Görevler</h3>
+              <br>
+              <button class="btn btn-success" onclick="$.createUser()">Kullanıcı Oluştur</button>
+              <br>
+              <table class="table">
+                  <thead class="thead">
+                      <tr>
+                          <th>Kullanıcı Adı</th>
+                          <th>Admin mi?</th>
+                          <th>Tarih</th>
+                          <th>İşlem</th>
+                      </tr>
+                  </thead>
+                  <tbody class="tbody">
+                    ${strCols}
+                  </tbody>
+              </table>
+          `;
+
+
+          $("#loadPage").empty();
+          $("#loadPage").append(strTable);
+
+
+        };
+      $.deleteUser = async function(id) {
+
+          let token = localStorage.getItem("token");
+
+          let options = {
+              method: 'DELETE',
+              headers: {
+                  'Content-Type': 'application/json;charset=UTF-8',
+                  "Token": token
+              },
+              body: JSON.stringify({id:id})
+          };
+
+          let re = await fetch(api_url + "/user", options).then((r) => r.json());
+
+          if(re.status == 200){
+              alert("Silme Başarılı", JSON.stringify(re));
+          }else{
+            alert("Silme başarısız", JSON.stringify(re));
+          }
+
+          };
+      $.updateUser = async function(id) {
+
+            $("#popupPage").empty().html('<div id="surveyElement"></div>');
+            let item = mdata.find(x => x._id == id);
+
+            let marr = [];
+            for (let i in item) {
+                const element = item[i];
+
+                  let obj = {
+                        "type": "text",
+                        "name": i,
+                        "title": i,
+                        "defaultValue":element,
+                  };
+              
+                  if(!(i == "username" || i == "isAdmin" )){
+                    obj.readOnly = true
+                  }
+                    
+                  marr.push(obj);
+                
+            }
+
+            let obj1 = {
+                        "type": "text",
+                        "name":  "password1",
+                        "title": "Yeni Şifre",
+                        "defaultValue":"",
+                  };
+            let obj2 = {
+                        "type": "text",
+                        "name":  "password2",
+                        "title":"Yeni Şifre Tekrar",
+                        "defaultValue":"",
+                  };
+            marr.push(obj1);
+            marr.push(obj2);
+
+            let surveyJson = {
+                showCompletedPage:false,
+                "showQuestionNumbers": "off",
+                elements: marr,
+                completeText: "Güncelle",
+            };
+
+            let myacc = new Survey.Model(surveyJson);
+            myacc.onComplete.add(async (res)=>{
+              console.log(res.data)
+
+              let mbody = res.data;
+              if(mbody.password1 != mbody.password2){
+                alert("Şifreler uyuşmuyor");
+                return;
+              }
+
+              mbody.id = mbody._id;
+              delete mbody._id;
+
+              let token = localStorage.getItem("token");
+
+              let options = {
+                  method: 'PUT',
+                  headers: {
+                      'Content-Type': 'application/json;charset=UTF-8',
+                      "Token": token
+                  },
+                  body: JSON.stringify(mbody)
+              };
+
+              let re = await fetch(api_url + "/user", options).then((r) => r.json());
+
+              if(re.status == 200){
+                  alert("Güncelleme Başarılı "+JSON.stringify(re));
+              }else{
+                alert("Güncelleme başarısız "+JSON.stringify(re));
+              }
+
+            });
+
+            myacc.render(document.getElementById("surveyElement"));
+
+            
+      };
+      $.createUser = async ()=>{
+        $("#popupPage").empty().html('<div id="surveyElement"></div>');
+
+        let marr = [
+          {
+            "type": "text",
+            "name": "username",
+            "title": "username",
+          },
+          {
+            "type": "text",
+            "name": "password",
+            "title": "password",
+            "inputType": "password"
+          },
+          {
+            "type": "text",
+            "name": "isAdmin",
+            "title": "isAdmin",
+            "description": "true/false"
+          }
+        ];
+
+        let sjson = {
+            "title": "Kullanıcı Oluşturma",
+            "description": "",
+            "completedHtml": "",
+            "showCompletedPage": false,
+            "pages": [
+              {
+                "name": "page1",
+                "elements": marr
+              }
+            ],
+            "showQuestionNumbers": "off",
+            "completeText": "Oluştur",
+            "widthMode": "responsive",
+          };
+
+        const survey = new Survey.Model(sjson);
+
+        SurveyUI.renderPopupSurvey(
+            survey,
+            document.getElementById("surveyElement"),
+            {
+                isExpanded: true,
+                allowClose: true,
+                closeOnCompleteTimeout: 0,
+                onClose: () => console.log("Pop-up kapatıldı.")
+            }
+        );
+
+
+        survey.onComplete.add( async function(sender, opt) {
+          
+
+          let mbody= {username:sender.data.username, password:sender.data.password, isAdmin:sender.data.isAdmin };
+
+          let token = localStorage.getItem("token");
+
+          let options = {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json;charset=UTF-8',
+                  "Token": token
+              },
+            body: JSON.stringify(mbody)
+          };
+
+          let re = await fetch(api_url + "/user", options).then((r) => r.json());
+
+          if(re.status == 200){
+              alert("Oluşturma Başarılı", JSON.stringify(re));
+          }else{
+            alert("Oluşturma başarısız", JSON.stringify(re));
+          }
+         
+        });
+      }
+    
+      });
   </script>
 
 </body>
