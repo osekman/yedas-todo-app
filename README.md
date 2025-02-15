@@ -1,7 +1,7 @@
 # yedas-todo-app
 Uygulamayı çalıştırmak için localde dockerın kurulu olması gerekir. Kurulu ise mongodb imajı indirilmiş olmalı.
 
-Mevcut imaj üzerinden aşağıdaki komut ile bir mongodb container çalıştırılır. Mogodbnin için **uygulama tarafında** kullanılan user ve passwordü aşağıdaki komuta eklenmiştir.
+Mevcut imaj üzerinden aşağıdaki komut ile bir mongodb container çalıştırılır. Mogodbnin **uygulama tarafında** kullanılan user ve passwordü aşağıdaki komuta eklenmiştir.
 
 ```javascript
 
