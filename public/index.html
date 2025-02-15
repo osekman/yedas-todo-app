@@ -89,9 +89,11 @@
         </div>
       </nav>
 
+    <div class="container-fluid">
+        <div id="popupPage"></div>
+        <div id="loadPage"></div>
+    </div>
 
-  <div id="popupPage"></div>
-  <div id="loadPage"></div>
 
   <script>
     $(document).ready(function() {
@@ -345,7 +347,7 @@
               <br>
               <button class="btn btn-success" onclick="$.createTask()">Görev Oluştur</button>
               <br>
-              <table class="table">
+              <table class="table" id="mTable">
                   <thead class="thead">
                       <tr>
                           <th>Task Adı</th>
@@ -365,6 +367,9 @@
 
           $("#loadPage").empty();
           $("#loadPage").append(strTable);
+
+          $('#mTable').DataTable();
+
 
        
       };
@@ -607,7 +612,7 @@
               <br>
               <button class="btn btn-success" onclick="$.createTag()">Kategori Oluştur</button>
               <br>
-              <table class="table">
+              <table class="table" id="mTable">
                   <thead class="thead">
                       <tr>
                           <th>GörevAdı</th>
@@ -625,6 +630,8 @@
 
           $("#loadPage").empty();
           $("#loadPage").append(strTable);
+
+          $('#mTable').DataTable();
 
        
       };
@@ -848,7 +855,7 @@
               <br>
               <button class="btn btn-success" onclick="$.createUser()">Kullanıcı Oluştur</button>
               <br>
-              <table class="table">
+              <table class="table" id="mTable">
                   <thead class="thead">
                       <tr>
                           <th>Kullanıcı Adı</th>
@@ -866,7 +873,7 @@
 
           $("#loadPage").empty();
           $("#loadPage").append(strTable);
-
+          $('#mTable').DataTable();
 
         };
       $.deleteUser = async function(id) {
