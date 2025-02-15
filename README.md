@@ -1,7 +1,7 @@
 # yedas-todo-app
 Uygulamayı çalıştırmak için localde dockerın kurulu olması gerekir. Kurulu ise mongodb imajı indirilmiş olmalı.
 
-Mevcut imaj üzerinden aşağıdaki komut ile bir mongodb container çalıştırılır.
+Mevcut imaj üzerinden aşağıdaki komut ile bir mongodb container çalıştırılır. Mogodbnin için **uygulama tarafında** kullanılan user ve passwordü aşağıdaki komuta eklenmiştir.
 
 ```javascript
 
@@ -26,11 +26,13 @@ Default olarak **user1** ve **admin** adında iki kullanıcı oluşturacak siste
 
 Bu proje workshop tarzında olduğu için çok özenmedim temel işlemleri yaptım, dosya yapılarını basit tutup kod tekrarına girdim.
 Production projelerinde elbette daha özenli olunmalı.
-Kullanıcı kısıtlamaları, input typeler gerektiği şekilde olmalı.
+Kullanıcı kısıtlamaları, input typeler, dosya konumlamaları gerektiği şekilde ayarlanmalı.
 
 
 **Not:**
 
-İnsan Kaynaklarından mailime dönüş gelmediği için birçok noktada devam edip etmeme konusunda tereddütte kalarak ilerledim. Projeyi minimal isteklere göre ayarlayarak bıraktım. Bir özellik eklemeyi es geçtim. Görevleri kategorilerle bağlarken manuel yazılmasını bekledim kullanıcıdan. Bu da bahsettiğim tereddütler sonucu böyle kaldı.
+İnsan Kaynaklarından mailime dönüş gelmediği için birçok noktada devam edip etmeme konusunda tereddütte kalarak ilerledim. Projeyi minimal isteklere göre ayarlayarak bıraktım. Bir özellik eklemeyi es geçtim. Görevleri kategorilerle bağlarken manuel yazılmasını bekledim kullanıcıdan. Olması gereken elbette, Kategorilerin dbden çekilerek önyüzdeki multiselect componenti içerisinde seçtirmekti. Bunu da bahsettiğim tereddütler nedeniyle eksik bıraktım, eklemedim.
 
-Projenin hiç değerlendirilmeme ihtimali beni yordu açıkçası ama yine de birgün geriye dönüp baktığımda "keşke..." dememek için devam ettim.
+**Projenin hiç değerlendirilmeme ihtimali beni çok yordu açıkçası, fakat, birgün geriye dönüp baktığımda "keşke..." dememek için devam ettim.**
+
+Umarım projem objektif bir gözle değerlendirilir..
