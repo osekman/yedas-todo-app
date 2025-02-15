@@ -27,12 +27,17 @@ Default olarak **user1** ve **admin** adında iki kullanıcı oluşturacak siste
 Bu proje workshop tarzında olduğu için çok özenmedim temel işlemleri yaptım, dosya yapılarını basit tutup kod tekrarına girdim.
 Production projelerinde elbette daha özenli olunmalı.
 Kullanıcı kısıtlamaları, input typeler, dosya konumlamaları gerektiği şekilde ayarlanmalı.
+<br>
+<br>
 
+**Not: Aşağıda yadıklarım bu dosyada olmaması gereken yazılardır, sadece bu projeye özel eklenmiş bilgilerdir.**
 
-**Not:**
+İnsan Kaynaklarından mailime dönüş gelmediği için birçok noktada devam edip etmeme konusunda tereddütte kalarak ilerledim. **node-red** kütüphanesini kullanmadım, o da express temelli, önyüz sağlayarak bir çok işlemi kolaylaştıran bir kütüphane zaten. Surveyjs'in dökümanını yetersiz buldum, bir çok noktada kendi dökümantasyonu içerisinde istediğim bilgilere ulaşamadım.
 
-İnsan Kaynaklarından mailime dönüş gelmediği için birçok noktada devam edip etmeme konusunda tereddütte kalarak ilerledim. Projeyi minimal isteklere göre ayarlayarak bıraktım. Bir özellik eklemeyi es geçtim. Görevleri kategorilerle bağlarken manuel yazılmasını bekledim kullanıcıdan. Olması gereken elbette, Kategorilerin dbden çekilerek önyüzdeki multiselect componenti içerisinde seçtirmekti. Bunu da bahsettiğim tereddütler nedeniyle eksik bıraktım, eklemedim.
+Projeyi minimal isteklere göre ayarlayarak bıraktım. Bir özellik eklemeyi es geçtim. Görevleri kategorilerle bağlarken manuel yazılmasını bekledim kullanıcıdan. Olması gereken elbette, Kategorilerin dbden çekilerek önyüzdeki multiselect componenti içerisinde seçtirmekti. Bunu da bahsettiğim tereddütler nedeniyle eksik bıraktım, eklemedim.
 
-**Projenin hiç değerlendirilmeme ihtimali beni çok yordu açıkçası, fakat, birgün geriye dönüp baktığımda "keşke..." dememek için devam ettim.**
+**Projenin bir kütüphane yüzünden (node-red) hiç değerlendirilmeme ihtimali beni çok yordu açıkçası, fakat, birgün geriye dönüp baktığımda "keşke..." dememek için devam ettim. Çünkü senior olmanın gereği risk ve sorumluluk alabilmektir. Kararımı verip uyguladım.**
 
-Umarım projem objektif bir gözle değerlendirilir..
+Projemin objektif bir bakışla değerlendirilmesini umuyorum.. 
+
+İyi Çalışmalar Dilerim. Saygılarımla..
