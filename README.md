@@ -14,7 +14,7 @@ Mevcut proje github reposundan klonlanır ve ana dizine gidilir. Aşağıdaki ko
 
 ```javascript
 
-npm run local-dev-win
+npm run dev-win
 
 ```
 

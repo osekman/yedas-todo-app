@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "local-dev-win": "set MY_ENV=dev&& node index.js",
-    "local-prod-win": "set MY_ENV=prod&& node index.js"
+    "dev-win": "set MY_ENV=dev&& node index.js",
+    "prod-win": "set MY_ENV=prod&& node index.js"
   },
   "repository": {
     "type": "git",
